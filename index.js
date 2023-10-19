@@ -53,6 +53,29 @@ async function run() {
       res.send(result)
     })
 
+    //Upcoming product API
+    app.get('/upcoming', async(req, res) => {
+      const upcoming = req.body
+      const query = { productStatus: "Upcoming" };
+      const cursor = productCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    //Trending Product Api
+    app.get('/trending', async(req, res) => {
+      //const trending = req.body
+      const query = {
+        $expr: {
+          $gt: [{ $toDouble: "$productRating" }, 5]
+        }
+      };
+      const cursor = productCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+
     //Add product to Cart 
     app.post('/cart', async(req, res) => {
       const cartProduct = req.body;
@@ -75,7 +98,16 @@ async function run() {
       res.send(result)
     })
 
-    //get product by product Brand
+    //delete a product from cart
+    app.delete('/cart/:productId', async(req, res) => {
+      const productId = req.params.productId;
+      console.log(productId);
+      const query = {_id: productId};
+      const result = await cartCollection.deleteOne(query)
+      res.send(result)
+    })
+
+    //get products by product Brand
     app.get('/brandProducts/:brandName', async(req, res) => {
       const brandName = req.params.brandName
       const query = { productBrand: brandName };
@@ -90,6 +122,14 @@ async function run() {
       const query = { _id: new ObjectId(productId) };
       const cursor = productCollection.find(query)
       const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    //Update a product
+    app.get('/updateProduct/:productId', async (req, res) => {
+      const productId = req.params.productId;
+      const query = {_id: new ObjectId(productId)}
+      const result = await productCollection.findOne(query)
       res.send(result)
     })
 
