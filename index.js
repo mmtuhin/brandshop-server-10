@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express()
 const port = process.env.PORT || 4444
@@ -28,6 +28,7 @@ async function run() {
 
     const brandCollection = client.db('popcornDB').collection('brand')
     const productCollection = client.db('popcornDB').collection('product')
+    const cartCollection = client.db('popcornDB').collection('cart')
 
     //Get all brands API
     app.get('/brand', async(req, res) => {
@@ -50,12 +51,43 @@ async function run() {
       console.log(product);
       const result = await productCollection.insertOne(product)
       res.send(result)
-
     })
+
+    //Add product to Cart 
+    app.post('/cart', async(req, res) => {
+      const cartProduct = req.body;
+      console.log(cartProduct);
+      const existingProduct = await cartCollection.findOne({ _id: cartProduct._id });
+      if (!existingProduct){
+        const result = await cartCollection.insertOne(cartProduct)
+        res.send(result)
+      }
+      else{
+        res.send({ message: 'Product already added to the cart.' })
+      }
+      
+    })
+
+    //get All Cart Data
+    app.get('/cart', async(req, res) => {
+      const cursor = cartCollection.find()
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
     //get product by product Brand
     app.get('/brandProducts/:brandName', async(req, res) => {
       const brandName = req.params.brandName
       const query = { productBrand: brandName };
+      const cursor = productCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    //Get single product by product ID
+    app.get('/productDetails/:productId', async(req, res) => {
+      const productId = req.params.productId
+      const query = { _id: new ObjectId(productId) };
       const cursor = productCollection.find(query)
       const result = await cursor.toArray()
       res.send(result)
