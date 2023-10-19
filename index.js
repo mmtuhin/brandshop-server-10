@@ -91,9 +91,11 @@ async function run() {
       
     })
 
-    //get All Cart Data
-    app.get('/cart', async(req, res) => {
-      const cursor = cartCollection.find()
+    //get All Cart Data of a user(Based on Email)
+    app.get('/myCart/:email', async(req, res) => {
+      const email = req.params.email
+      const query = {email: email}
+      const cursor = cartCollection.find(query)
       const result = await cursor.toArray()
       res.send(result)
     })
@@ -125,11 +127,33 @@ async function run() {
       res.send(result)
     })
 
-    //Update a product
+    //Get the product for updating
     app.get('/updateProduct/:productId', async (req, res) => {
       const productId = req.params.productId;
       const query = {_id: new ObjectId(productId)}
       const result = await productCollection.findOne(query)
+      res.send(result)
+    })
+
+    //update Product
+    app.put('/product/:id' , async(req, res) => {
+      const id = req.params.id
+      const filter = {_id: new ObjectId(id)}
+      const options = { upsert: true}
+      const updatedProduct = req.body
+      const product = {
+        $set:{
+          productStatus: updatedProduct.productStatus,
+          productRating: updatedProduct.productRating,
+          productPrice: updatedProduct.productPrice,
+          productName: updatedProduct.productName,
+          productImageUrl: updatedProduct.productImageUrl,
+          productDescription: updatedProduct.productDescription,
+          productCategory: updatedProduct.productCategory,
+          productBrand: updatedProduct.productBrand,
+        }
+      }
+      const result = await productCollection.updateOne(filter, product, options)
       res.send(result)
     })
 
