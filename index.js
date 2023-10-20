@@ -113,9 +113,16 @@ async function run() {
     app.get('/brandProducts/:brandName', async(req, res) => {
       const brandName = req.params.brandName
       const query = { productBrand: brandName };
+      const query2 = { brandName: brandName }
+
       const cursor = productCollection.find(query)
+      const cursor2 = brandCollection.find(query2)
+
       const result = await cursor.toArray()
-      res.send(result)
+      result2 = await cursor2.toArray()
+
+      const combinedResult = { brandProducts: result , brandInfo: result2}
+      res.send(combinedResult)
     })
 
     //Get single product by product ID
